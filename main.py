@@ -21,11 +21,7 @@ with open("config.yml", "r") as file:
     config = yaml.safe_load(file)
     
 output_crop_face_dir = "output"
-result = {
-    "message": None,
-    "align_face": None,
-    "bbox": None
-}
+result = { "message": None, "align_face": None, "bbox": None }
 
 mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
     static_image_mode=True,
@@ -56,7 +52,6 @@ else:
             if result["message"] is None:
                 result["message"] = msg
             all_passed = False
-
 
     if all_passed:
         align_face(image_path, output_crop_face_dir, mp_face_mesh)
