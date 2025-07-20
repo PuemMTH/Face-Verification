@@ -12,41 +12,52 @@ class QueueHandler:
 
     def connect(self):
         """Establish connection to RabbitMQ"""
-        credentials = pika.PlainCredentials(os.getenv('RABBITMQ_USER'), os.getenv('RABBITMQ_PASSWORD'))
+        host = os.getenv('RABBITMQ_HOST', 'localhost')
+        port = int(os.getenv('RABBITMQ_PORT', '5672'))
+        username = os.getenv('RABBITMQ_USER', 'ipu_user')
+        password = os.getenv('RABBITMQ_PASS', 'ipu_password')
+        queue = os.getenv('RABBITMQ_QUEUE', 'face_verification_queue')
+        
+        print(f"Connecting to RabbitMQ at {host}:{port} with user: {username}")
+        
+        credentials = pika.PlainCredentials(username, password)
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host=os.getenv('RABBITMQ_HOST'),
-                port=os.getenv('RABBITMQ_PORT'),
+                host=host,
+                port=port,
                 credentials=credentials
             )
         )
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=os.getenv('RABBITMQ_QUEUE'))
+        self.channel.queue_declare(queue=queue)
         self.channel.basic_qos(prefetch_count=1)
+        print(f"Successfully connected to RabbitMQ and listening on queue: {queue}")
 
     def on_request(self, ch, method, props, body):
         """Handle incoming RabbitMQ requests"""
         try:
             json_body = json.loads(body)
+            print(f"Received request: {json_body}")
 
             if 'file' not in json_body and 'files' not in json_body:
-                return json.dumps({
+                response = json.dumps({
                     'OK': False,
                     'error': 'Missing required "file" or "files" field in request'
                 })
-
-            if 'files' in json_body:
-                return json.dumps({
+            elif 'files' in json_body:
+                response = json.dumps({
                     'OK': False,
                     'error': 'Batch processing not supported'
                 })
             else:
+                print(f"Processing file: {json_body['file']}")
                 response = self.model_handler.process_image(
-                    file_path=json_body['file'],
-                    folder_path=json_body['folder_path']
+                    file_path=json_body['file']
                 )
+                print(f"Processing result: {response}")
 
         except Exception as e:
+            print(f"Error processing request: {str(e)}")
             response = json.dumps({
                 'OK': False,
                 'error': str(e)

@@ -49,7 +49,8 @@ class ModelHandler:
         )
 
     def process_image(self, file_path: str):
-
+        import json
+        
         output_crop_face_dir = "output"
         result = { "message": None, "align_face": None, "bbox": None }
 
@@ -82,6 +83,19 @@ class ModelHandler:
                 image_save_path = os.path.join(output_crop_face_dir, image_filename)
                 result["align_face"] = image_save_path
                 result["bbox"] = bbox
+        
+        # Return JSON response
+        if result["message"] is None:
+            return json.dumps({
+                'OK': True,
+                'align_face': result["align_face"],
+                'bbox': result["bbox"]
+            })
+        else:
+            return json.dumps({
+                'OK': False,
+                'error': result["message"]
+            })
 
 def signal_handler(signum, frame):
     print("\nReceived shutdown signal. Closing connection...")
