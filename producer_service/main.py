@@ -22,6 +22,7 @@ app = FastAPI(title="Face Verification API",description="API for face verificati
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"],expose_headers=["*"])
 
 baseURL = os.getenv("BASEURL_STATIC", "./uploads")
+os.makedirs(baseURL, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 art.tprint("Face Verification API")
@@ -68,13 +69,12 @@ async def face_verification(
         
         # Prepare the data for RabbitMQ
         request_data = {"file": str(file_path.absolute())}
-        print(f"Request data: {request_data}")
-        metadata = {"request_id": str(uuid.uuid4()), "timestamp": datetime.datetime.now().isoformat()}
-        
+        request_id = str(uuid.uuid4())
+        metadata = {"request_id": request_id, "timestamp": datetime.datetime.now().isoformat()}
         response = mq_client.call(request_data, metadata)
-        response_data = json.loads(response.decode('utf-8'))
-
-        return JSONResponse(status_code=200,content=response_data)
+        with open(f"{file_path.parent}/{request_id}.json", "w") as f:
+            f.write(response.decode('utf-8'))
+        return JSONResponse(status_code=200,content=json.loads(response.decode('utf-8')))
 
     except Exception as e:
         print(f"Error processing request: {str(e)}")
