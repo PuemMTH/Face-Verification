@@ -12,7 +12,7 @@ from func.get_landmarks import get_lm
 from func.check_head_fully import analyze_single_image
 
 # set path
-image_path = r"C:\Users\naphatnan\Desktop\Work\NECTEC\Face-Verification\Error\other\02c33a77-379d-42ff-b7d4-13e075f11017_front.jpg"
+image_path = "/Users/puem/Documents/NECTEC/face/Face-Verification/assets/6cc763d0-615d-41c6-8a17-c2bdb4e54b41.jpg"
 
 os.environ['GLOG_minloglevel'] = '2'
 
@@ -23,11 +23,7 @@ with open("config.yml", "r") as file:
 output_crop_face_dir = "output"
 result = { "message": None, "align_face": None, "bbox": None }
 
-mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
-    static_image_mode=True,
-    max_num_faces=10,
-    min_detection_confidence=0.5
-)
+mp_face_mesh = mp.solutions.face_mesh.FaceMesh(static_image_mode=True,max_num_faces=10,min_detection_confidence=0.5)
 
 # หา landmarks จากใบหน้า
 success, msg, landmarks, bbox = get_lm(image_path)
