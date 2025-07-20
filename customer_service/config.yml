@@ -10,4 +10,3 @@ threshold:
   bright_threshold: 200
   diff_threshold: 20
   margin: 0.1
-
