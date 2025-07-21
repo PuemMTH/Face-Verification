@@ -5,7 +5,7 @@ import json
 import pika
 import time
 import datetime
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, Form, File
@@ -33,28 +33,23 @@ async def face_verification(
     file: UploadFile = File(...),
 ):
     try:
-        dd, mm, yyyy = datetime.datetime.now().strftime("%d-%m-%Y").split("-")
+        now = datetime.datetime.now()
         uuid_name = str(uuid.uuid4())
-        folder_path = Path(f"{baseURL}/{yyyy}/{mm}/{dd}")
+        folder_path = Path(f"{baseURL}/{now:%Y/%m/%d}")
         os.makedirs(folder_path, exist_ok=True)
 
-        validation_result = await validate_file_extension(file.filename)
-        if validation_result:
-            return validation_result
-        
-        # check size per file
-        validate_file = await validate_file_size(file.file.read())
-        if validate_file:
-            return validate_file
+        if (vr := await validate_file_extension(file.filename)):
+            return vr
+        file_bytes = file.file.read()
+        if (vs := await validate_file_size(file_bytes)):
+            return vs
         file.file.seek(0)
 
-        # Save file to disk
-        os.makedirs(folder_path, exist_ok=True)
-        file_path = folder_path / f"{uuid_name}.{file.filename.split('.')[-1]}"
-        with open(file_path, "wb") as original_image:
-            original_image.write(file.file.read())
+        file_ext = file.filename.split('.')[-1]
+        file_path = folder_path / f"{uuid_name}.{file_ext}"
+        with open(file_path, "wb") as fimg:
+            fimg.write(file_bytes)
 
-        # Initialize RabbitMQ client with proper parameters
         mq_client = RabbitMQClient(
             qname=os.getenv("RABBITMQ_QUEUE", "face_verification_queue"),
             hostname=os.getenv("RABBITMQ_HOST", "localhost"),
@@ -62,21 +57,21 @@ async def face_verification(
             password=os.getenv("RABBITMQ_PASS", "ipu_password"),
             local=False
         )
-        
-        # Connect to RabbitMQ
         if not mq_client.connect():
             raise ConnectionError("Failed to connect to RabbitMQ")
-        
-        # Prepare the data for RabbitMQ
+
         request_data = {"file": str(file_path.absolute())}
-        metadata = {"request_id": uuid_name, "timestamp": datetime.datetime.now().isoformat()}
+        metadata = {"request_id": uuid_name, "timestamp": now.isoformat()}
         response = mq_client.call(request_data, metadata)
+        data_json = json.loads(response.decode('utf-8'))
 
-        data_response = response.decode('utf-8')
+        if 'align_face' in data_json:
+            af = data_json['align_face'].split('/')
+            data_json['align_face'] = f"http://localhost:8085/uploads/{'/'.join(af[-4:])}"
 
-        with open(f"{file_path.parent}/{uuid_name}.json", "w") as f:
-            f.write(response.decode('utf-8'))
-        return JSONResponse(status_code=200,content=json.loads(response.decode('utf-8')))
+        with open(file_path.parent / f"{uuid_name}.json", "w") as f:
+            json.dump(data_json, f)
+        return JSONResponse(status_code=200, content=data_json)
 
     except Exception as e:
         print(f"Error processing request: {str(e)}")
