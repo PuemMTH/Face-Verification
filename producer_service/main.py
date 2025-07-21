@@ -21,8 +21,9 @@ load_dotenv()
 app = FastAPI(title="Face Verification API",description="API for face verification",version="1.0.0")
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"],expose_headers=["*"])
 
-baseURL = os.getenv("BASEURL_STATIC", "./uploads")
-os.makedirs(baseURL, exist_ok=True)
+# Use local path for file storage
+upload_path = "./uploads"
+os.makedirs(upload_path, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 art.tprint("Face Verification API")
@@ -35,7 +36,7 @@ async def face_verification(
     try:
         now = datetime.datetime.now()
         uuid_name = str(uuid.uuid4())
-        folder_path = Path(f"{baseURL}/{now:%Y/%m/%d}")
+        folder_path = Path(f"{upload_path}/{now:%Y/%m/%d}")
         os.makedirs(folder_path, exist_ok=True)
 
         if (vr := await validate_file_extension(file.filename)):
@@ -51,10 +52,10 @@ async def face_verification(
             fimg.write(file_bytes)
 
         mq_client = RabbitMQClient(
-            qname=os.getenv("RABBITMQ_QUEUE", "face_verification_queue"),
-            hostname=os.getenv("RABBITMQ_HOST", "localhost"),
-            username=os.getenv("RABBITMQ_USER", "ipu_user"),
-            password=os.getenv("RABBITMQ_PASS", "ipu_password"),
+            qname=os.getenv("RABBITMQ_QUEUE"),
+            hostname=os.getenv("RABBITMQ_HOST"),
+            username=os.getenv("RABBITMQ_USER"),
+            password=os.getenv("RABBITMQ_PASSWORD"),
             local=False
         )
         if not mq_client.connect():
@@ -67,7 +68,8 @@ async def face_verification(
 
         if 'align_face' in data_json:
             af = data_json['align_face'].split('/')
-            data_json['align_face'] = f"http://localhost:8085/uploads/{'/'.join(af[-4:])}"
+            static_base_url = os.getenv("BASEURL_STATIC")
+            data_json['align_face'] = f"{static_base_url}/{'/'.join(af[-4:])}"
 
         with open(file_path.parent / f"{uuid_name}.json", "w") as f:
             json.dump(data_json, f)
@@ -82,4 +84,4 @@ async def face_verification(
             mq_client.close()
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("API_PORT", 8085)), reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("API_PORT")), reload=True)
