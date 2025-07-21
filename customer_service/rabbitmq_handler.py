@@ -9,14 +9,15 @@ class QueueHandler:
         self.model_handler = model_handler
         self.connection = None
         self.channel = None
+        self.queue = None
 
     def connect(self):
         """Establish connection to RabbitMQ"""
-        host = os.getenv('RABBITMQ_HOST', 'localhost')
-        port = int(os.getenv('RABBITMQ_PORT', '5672'))
-        username = os.getenv('RABBITMQ_USER', 'ipu_user')
-        password = os.getenv('RABBITMQ_PASS', 'ipu_password')
-        queue = os.getenv('RABBITMQ_QUEUE', 'face_verification_queue')
+        host = os.getenv('RABBITMQ_HOST')
+        port = int(os.getenv('RABBITMQ_PORT'))
+        username = os.getenv('RABBITMQ_USER')
+        password = os.getenv('RABBITMQ_PASSWORD')
+        self.queue = os.getenv('RABBITMQ_QUEUE')
         
         print(f"Connecting to RabbitMQ at {host}:{port} with user: {username}")
         
@@ -29,9 +30,9 @@ class QueueHandler:
             )
         )
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=queue)
+        self.channel.queue_declare(queue=self.queue)
         self.channel.basic_qos(prefetch_count=1)
-        print(f"Successfully connected to RabbitMQ and listening on queue: {queue}")
+        print(f"Successfully connected to RabbitMQ and listening on queue: {self.queue}")
 
     def on_request(self, ch, method, props, body):
         """Handle incoming RabbitMQ requests"""
@@ -74,7 +75,7 @@ class QueueHandler:
     def start_consuming(self):
         """Start consuming messages"""
         self.channel.basic_consume(
-            queue=os.getenv('RABBITMQ_QUEUE'),
+            queue=self.queue,
             on_message_callback=self.on_request
         )
         print("Waiting for messages. To exit press CTRL+C")

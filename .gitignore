@@ -1,3 +1,5 @@
 producer_service/uploads/
 producer_service/__pycache__/
 *.pyc
+./backup/
+backup/
