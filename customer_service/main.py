@@ -50,11 +50,10 @@ class ModelHandler:
 
     def process_image(self, file_path: str):
         import json
-        
-        output_crop_face_dir = "output"
-        result = { "message": None, "align_face": None, "bbox": None }
 
-        success, msg, landmarks, bbox = get_lm(file_path)
+        output_crop_face_dir = os.path.dirname(file_path)
+        result = { "message": None, "align_face": None, "bbox": None }
+        success, msg, landmarks, bbox, norm_box = get_lm(file_path)
 
         if not success:
             result["message"] = msg
@@ -89,7 +88,8 @@ class ModelHandler:
             return json.dumps({
                 'OK': True,
                 'align_face': result["align_face"],
-                'bbox': result["bbox"]
+                'bbox': result["bbox"],
+                'norm_box': norm_box
             })
         else:
             return json.dumps({

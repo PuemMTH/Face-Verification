@@ -35,7 +35,7 @@ async def face_verification(
     try:
         dd, mm, yyyy = datetime.datetime.now().strftime("%d-%m-%Y").split("-")
         uuid_name = str(uuid.uuid4())
-        folder_path = Path(f"{baseURL}/{yyyy}/{mm}/{dd}/{uuid_name}")
+        folder_path = Path(f"{baseURL}/{yyyy}/{mm}/{dd}")
         os.makedirs(folder_path, exist_ok=True)
 
         validation_result = await validate_file_extension(file.filename)
@@ -69,10 +69,12 @@ async def face_verification(
         
         # Prepare the data for RabbitMQ
         request_data = {"file": str(file_path.absolute())}
-        request_id = str(uuid.uuid4())
-        metadata = {"request_id": request_id, "timestamp": datetime.datetime.now().isoformat()}
+        metadata = {"request_id": uuid_name, "timestamp": datetime.datetime.now().isoformat()}
         response = mq_client.call(request_data, metadata)
-        with open(f"{file_path.parent}/{request_id}.json", "w") as f:
+
+        data_response = response.decode('utf-8')
+
+        with open(f"{file_path.parent}/{uuid_name}.json", "w") as f:
             f.write(response.decode('utf-8'))
         return JSONResponse(status_code=200,content=json.loads(response.decode('utf-8')))
 
