@@ -68,9 +68,10 @@ def get_lm(img_path):
             y_max = min(height, y_max + margin_y)
             w = x_max - x_min
             h = y_max - y_min
-            bbox = (x_min, y_min, w, h)
+            bbox = (x_min, y_min, w, h) 
+            norm_box = (x_min/width, y_min/height, w/width, h/height)
 
-            return (True, "Face detected successfully", landmarks, bbox)
+            return (True, "Face detected successfully", landmarks, bbox, norm_box)
 
     except Exception as e:
         return (False, f"Error during face detection: {str(e)}", None,None)

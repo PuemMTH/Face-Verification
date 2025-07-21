@@ -1,0 +1,12 @@
+Error
+__pycache__
+.venv
+tmp
+bin
+test
+eye_status_results.csv
+result_summary.csv
+run_test.py
+run copy.py
+test.ipynb
+output
