@@ -64,6 +64,9 @@ def check_eye_status(landmarks, success, message,EAR_THRESHOLD) -> Tuple[bool, s
         # Calculate EAR for both eyes
         left_ear = calculate_ear(landmarks, LEFT_EYE_INDICES)
         right_ear = calculate_ear(landmarks, RIGHT_EYE_INDICES)
+        
+        print(left_ear)
+        print(right_ear)
 
         # Check if both eyes are open
         if left_ear > EAR_THRESHOLD and right_ear > EAR_THRESHOLD:

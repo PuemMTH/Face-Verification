@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import os
 
-def check_head_pose(image_path):
+def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, til_right_th):
     # ตั้งค่า MediaPipe
     mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True)
@@ -71,22 +71,22 @@ def check_head_pose(image_path):
             
 
             # ตรวจสอบทิศทางศีรษะ
-            if yaw < -3:
+            if yaw < left_th:
                 success = False
                 direction = "Looking Left"
-            elif yaw > 3:
+            elif yaw > right_th:
                 success = False
                 direction = "Looking Right"
-            elif pitch < -10:
+            elif pitch < down_th:
                 success = False
                 direction = "Looking Down"
-            elif pitch > 15:
+            elif pitch > up_th:
                 success = False
                 direction = "Looking Up"
-            elif roll < -0.10:
+            elif roll < til_left_th:
                 success = False
                 direction = "Tilting Left"
-            elif roll > 0.10:
+            elif roll > til_right_th:
                 success = False
                 direction = "Tilting Right"
             else:

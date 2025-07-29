@@ -1,15 +1,15 @@
 import cv2
 import mediapipe as mp
 
-def is_top_of_head_cut(landmarks, image_height):
+def is_top_of_head_cut(landmarks, image_height, head_fully_th):
     top_y = landmarks[10].y * image_height
-    return top_y < 10
+    return top_y < head_fully_th
 
-def is_chin_cut(landmarks, image_height):
+def is_chin_cut(landmarks, image_height, head_fully_th):
     chin_y = landmarks[152].y * image_height
-    return chin_y > image_height - 10
+    return chin_y > image_height - head_fully_th
 
-def analyze_single_image(image_path):
+def analyze_single_image(image_path, head_fully_th):
     mp_face_mesh = mp.solutions.face_mesh
 
     image = cv2.imread(image_path)
@@ -24,8 +24,8 @@ def analyze_single_image(image_path):
 
     if results.multi_face_landmarks:
         face_landmarks = results.multi_face_landmarks[0].landmark
-        top_cut = is_top_of_head_cut(face_landmarks, h)
-        chin_cut = is_chin_cut(face_landmarks, h)
+        top_cut = is_top_of_head_cut(face_landmarks, h, head_fully_th)
+        chin_cut = is_chin_cut(face_landmarks, h, head_fully_th)
 
         if top_cut and chin_cut:
             return False, "Top of head and chin might be cut"
