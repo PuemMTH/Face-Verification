@@ -23,5 +23,9 @@ COPY . .
 # Create uploads directory
 RUN mkdir -p uploads
 
+# Set environment variables to suppress TensorFlow warnings
+ENV TF_CPP_MIN_LOG_LEVEL=2
+ENV GLOG_minloglevel=2
+
 # Run the application
 CMD ["python", "main.py"] 
