@@ -36,11 +36,11 @@ class ModelHandler:
         if self.gpu_mode:
             # Enable GPU acceleration for MediaPipe
             os.environ['MEDIAPIPE_GPU'] = '1'
-            print(f"MediaPipe configured to use GPU acceleration")
+            print("MediaPipe configured to use GPU acceleration")
         else:
             # Force CPU mode for MediaPipe
             os.environ['MEDIAPIPE_GPU'] = '0'
-            print(f"MediaPipe configured to use CPU only")
+            print("MediaPipe configured to use CPU only")
         
         self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
             static_image_mode=self.static_image_mode,
@@ -60,11 +60,11 @@ class ModelHandler:
         else:
             funcs = [
                 ("check_face_min_size", check_face_min_size, [bbox, self.config['threshold']['face_size']], {}),
-                ("check_eye", check_eye_status, [landmarks, success, msg, self.config['threshold']['EAR_THRESHOLD']], {}),
                 ("check_lightpol", check_lightpol, [file_path,self.config['threshold']['dark_threshold'],self.config['threshold']['bright_threshold'],self.config['threshold']['diff_threshold'],self.config['threshold']['margin']], {}),
                 ("check_face_blur", check_face_blur, [file_path, self.config['threshold']['blur']], {}),
                 ("check_head_fully",analyze_single_image,[file_path],{}),
                 ("check_head_pose",check_head_pose,[file_path],{}),
+                ("check_eye", check_eye_status, [landmarks, success, msg, self.config['threshold']['EAR_THRESHOLD']], {}),
             ]
 
             all_passed = True

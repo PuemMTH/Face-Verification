@@ -20,12 +20,12 @@ services:
       context: ./producer_service
       dockerfile: Dockerfile
     ports:
-      - "8085:8085"  # Changed to match the web service config
+      - "8085:8085"
     volumes:
       - ./backup/uploads:/app/uploads
     environment:
-      - API_HOST=https://api-postate.puem.me/api/v1
-      - BASEURL_STATIC=https://api-postate.puem.me/uploads
+      - API_HOST=http://localhost:8085/api/v1
+      - BASEURL_STATIC=http://localhost:8085/uploads
       - API_PORT=8085
       - RABBITMQ_HOST=rabbitmq-server
       - RABBITMQ_USER=ipu_user
@@ -63,7 +63,7 @@ services:
     ports:
       - "8084:80"
     environment:
-      - VITE_API_BASE_URL=https://api-postate.puem.me/api/v1
+      - VITE_API_BASE_URL=http://localhost:8085/api/v1
     depends_on:
       - producer_service
     restart: unless-stopped

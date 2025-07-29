@@ -12,5 +12,5 @@ def check_face_blur(image_path,threshold):
 
     # ตรวจสอบว่าเบลอหรือไม่
     if variance < threshold:
-        return False, f"Image is blurry"
-    return True, f"Image isn't blurry"
+        return False, "Image is blurry"
+    return True, "Image isn't blurry"
