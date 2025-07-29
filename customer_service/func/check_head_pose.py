@@ -2,15 +2,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import os
-import yaml
 
-# โหลดค่า config จากไฟล์ yml
-with open("config.yml", "r") as file:
-    config = yaml.safe_load(file)
-
-
-
-def check_head_pose(image_path):
+def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, til_right_th):
     # ตั้งค่า MediaPipe
     mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True)
@@ -78,22 +71,22 @@ def check_head_pose(image_path):
             
 
             # ตรวจสอบทิศทางศีรษะ
-            if yaw < config['threshold']['left_th']:
+            if yaw < left_th:
                 success = False
                 direction = "Looking Left"
-            elif yaw > config['threshold']['right_th']:
+            elif yaw > right_th:
                 success = False
                 direction = "Looking Right"
-            elif pitch < config['threshold']['down_th']:
+            elif pitch < down_th:
                 success = False
                 direction = "Looking Down"
-            elif pitch > config['threshold']['up_th']:
+            elif pitch > up_th:
                 success = False
                 direction = "Looking Up"
-            elif roll < config['threshold']['til_left_th']:
+            elif roll < til_left_th:
                 success = False
                 direction = "Tilting Left"
-            elif roll > config['threshold']['til_right_th']:
+            elif roll > til_right_th:
                 success = False
                 direction = "Tilting Right"
             else:

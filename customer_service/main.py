@@ -62,8 +62,8 @@ class ModelHandler:
                 ("check_face_min_size", check_face_min_size, [bbox, self.config['threshold']['face_size']], {}),
                 ("check_lightpol", check_lightpol, [file_path,self.config['threshold']['dark_threshold'],self.config['threshold']['bright_threshold'],self.config['threshold']['diff_threshold'],self.config['threshold']['margin']], {}),
                 ("check_face_blur", check_face_blur, [file_path, self.config['threshold']['blur']], {}),
-                ("check_head_fully",analyze_single_image,[file_path],{}),
-                ("check_head_pose",check_head_pose,[file_path],{}),
+                ("check_head_fully",analyze_single_image,[file_path, self.config['threshold']['head_fully_th']],{}),
+                ("check_head_pose",check_head_pose,[file_path, self.config['threshold']['left_th'], self.config['threshold']['right_th'], self.config['threshold']['down_th'], self.config['threshold']['up_th'], self.config['threshold']['til_left_th'], self.config['threshold']['til_right_th']],{}),
                 ("check_eye", check_eye_status, [landmarks, success, msg, self.config['threshold']['EAR_THRESHOLD']], {}),
             ]
 
