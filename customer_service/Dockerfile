@@ -28,4 +28,4 @@ ENV TF_CPP_MIN_LOG_LEVEL=2
 ENV GLOG_minloglevel=2
 
 # Run the application
-CMD ["python", "main.py"] 
+CMD ["python", "main.py", "2>/dev/null"] 
