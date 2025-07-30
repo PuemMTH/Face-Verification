@@ -14,10 +14,15 @@ class QueueHandler:
     def connect(self):
         """Establish connection to RabbitMQ"""
         host = os.getenv('RABBITMQ_HOST')
-        port = int(os.getenv('RABBITMQ_PORT'))
+        port_str = os.getenv('RABBITMQ_PORT')
         username = os.getenv('RABBITMQ_USER')
         password = os.getenv('RABBITMQ_PASSWORD')
         self.queue = os.getenv('RABBITMQ_QUEUE')
+        
+        if port_str is None:
+            raise ValueError("RABBITMQ_PORT environment variable is not set")
+        
+        port = int(port_str)
         
         print(f"Connecting to RabbitMQ at {host}:{port} with user: {username}")
         
