@@ -27,5 +27,5 @@ RUN mkdir -p uploads
 ENV TF_CPP_MIN_LOG_LEVEL=2
 ENV GLOG_minloglevel=2
 
-# Run the application
-CMD ["python", "main.py", "2>/dev/null"] 
+# Run the application in CPU mode
+CMD python main.py --cpu_mode 2>/dev/null 
