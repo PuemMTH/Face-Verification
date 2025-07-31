@@ -117,23 +117,14 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    try:
-        print("Starting model handler...")
-        print(f"GPU Mode: {gpu_mode}")
-        model_handler = ModelHandler(gpu_mode=gpu_mode)
-        global queue_handler
-        queue_handler = QueueHandler(model_handler)
-        print("Connecting to RabbitMQ...")
-        queue_handler.connect()
-        art.tprint("N. Face Verification")
-        print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - Face Verification node started.")
-        print("Starting to consume messages...")
-        queue_handler.start_consuming()
-
-    except Exception as e:
-        print(f"Error: {e}")
-        os._exit(1)
-
-    finally:
-        print("Connection closed. Exiting...")
-        os._exit(0)
+    print("Starting model handler...")
+    print(f"GPU Mode: {gpu_mode}")
+    model_handler = ModelHandler(gpu_mode=gpu_mode)
+    global queue_handler
+    queue_handler = QueueHandler(model_handler)
+    print("Connecting to RabbitMQ...")
+    queue_handler.connect()
+    art.tprint("N. Face Verification")
+    print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - Face Verification node started.")
+    print("Starting to consume messages...")
+    queue_handler.start_consuming()

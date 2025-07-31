@@ -1,8 +1,7 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     libgl1-mesa-glx \
@@ -13,19 +12,15 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
 COPY pyproject.toml uv.lock ./
-RUN pip install uv && uv pip install --system -e .
+RUN pip install uv
+# Restrict uv sync to Python 3.11 only to avoid dependency resolution issues
+RUN uv sync --python=3.11
+RUN uv pip install -e .
+RUN uv clean
 
-# Copy application code
 COPY . .
 
-# Create uploads directory
 RUN mkdir -p uploads
 
-# Set environment variables to suppress TensorFlow warnings
-ENV TF_CPP_MIN_LOG_LEVEL=2
-ENV GLOG_minloglevel=2
-
-# Run the application in CPU mode
-CMD ["python", "main.py", "--cpu_mode"] 
+CMD ["uv", "run", "python", "main.py", "--cpu_mode"] 
