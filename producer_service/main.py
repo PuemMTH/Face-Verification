@@ -53,9 +53,7 @@ async def face_verification(
 
         mq_client = RabbitMQClient(
             qname=os.getenv("RABBITMQ_QUEUE"),
-            hostname=os.getenv("RABBITMQ_HOST"),
-            username=os.getenv("RABBITMQ_USER"),
-            password=os.getenv("RABBITMQ_PASSWORD"),
+            rabbitmq_url=os.getenv("RABBITMQ_URL"),
             local=False
         )
         if not mq_client.connect():

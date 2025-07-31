@@ -2,9 +2,9 @@ services:
   rabbitmq:
     container_name: face_verification_rabbitmq-server
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"  # AMQP protocol port (internal:external)
-      - "15672:15672"  # Management UI port (internal:external)
+    # ports:
+    #   - "5673:5672"  # AMQP protocol port (internal:external)
+    #   - "15672:15672"  # Management UI port (internal:external)
     environment:
       RABBITMQ_DEFAULT_USER: ipu_user
       RABBITMQ_DEFAULT_PASS: ipu_password
@@ -27,10 +27,7 @@ services:
       - API_HOST=http://localhost:8085/api/v1
       - BASEURL_STATIC=http://localhost:8085/uploads
       - API_PORT=8085
-      - RABBITMQ_HOST=face_verification_rabbitmq-server
-      - RABBITMQ_USER=ipu_user
-      - RABBITMQ_PASSWORD=ipu_password
-      - RABBITMQ_PORT=5672
+      - RABBITMQ_URL=amqp://ipu_user:ipu_password@face_verification_rabbitmq-server:5672/
       - RABBITMQ_QUEUE=face_verification_queue
     depends_on:
       rabbitmq:
@@ -45,14 +42,13 @@ services:
     volumes:
       - ./backup/uploads:/app/uploads
     environment:
-      - RABBITMQ_HOST=face_verification_rabbitmq-server
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=ipu_user
-      - RABBITMQ_PASSWORD=ipu_password
+      - RABBITMQ_URL=amqp://ipu_user:ipu_password@face_verification_rabbitmq-server:5672/
       - RABBITMQ_QUEUE=face_verification_queue
     depends_on:
       rabbitmq:
         condition: service_healthy
+      producer_service:
+        condition: service_started
     restart: unless-stopped
 
   web_service:

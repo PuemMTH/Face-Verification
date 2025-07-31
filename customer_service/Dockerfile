@@ -13,11 +13,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml uv.lock ./
-RUN pip install uv
-# Restrict uv sync to Python 3.11 only to avoid dependency resolution issues
-RUN uv sync --python=3.11
-RUN uv pip install -e .
-RUN uv clean
+RUN pip install uv && uv sync --python=3.11 && uv pip install -e . && uv clean
 
 COPY . .
 
