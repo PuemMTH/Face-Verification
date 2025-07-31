@@ -5,11 +5,9 @@ import os
 
 class RabbitMQClient(object):
     
-    def __init__(self, qname, hostname, username, password, local=False):
+    def __init__(self, qname, rabbitmq_url, local=False):
         self.qname = qname
-        self.hostname = hostname
-        self.username = username
-        self.password = password
+        self.rabbitmq_url = rabbitmq_url
         self.local = local
         self.connection = None
         self.channel = None
@@ -24,9 +22,8 @@ class RabbitMQClient(object):
                 print("Connecting to local RabbitMQ at localhost")
                 self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
             else:
-                print(f"Connecting to RabbitMQ at {self.hostname} with user {self.username}")
-                url = os.environ.get('CLOUDAMQP_URL', f'amqp://{self.username}:{self.password}@{self.hostname}/%2f')
-                params = pika.URLParameters(url)
+                print(f"Connecting to RabbitMQ using URL: {self.rabbitmq_url}")
+                params = pika.URLParameters(self.rabbitmq_url)
                 self.connection = pika.BlockingConnection(params)
 
             self.channel = self.connection.channel()
