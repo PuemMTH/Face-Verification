@@ -1,5 +1,9 @@
 import numpy as np
 from typing import Tuple, List, Optional
+from rich.console import Console
+
+# Initialize Rich Console
+console = Console()
 
 def calculate_ear(landmarks: List[Tuple[int, int, float]], eye_indices: List[int]) -> float:
     """
@@ -50,6 +54,8 @@ def check_eye_status(landmarks, success, message,EAR_THRESHOLD) -> Tuple[bool, s
         - success: True if both eyes are open, False otherwise
         - message: Status or error message
     """
+    console.print(f"[bold cyan][EYE] 👁️ Checking eye status:[/bold cyan] [white]EAR_THRESHOLD={EAR_THRESHOLD}, landmarks_available={landmarks is not None}, success={success}[/white]")
+    
     # Eye landmark indices (from MediaPipe Face Mesh)
     LEFT_EYE_INDICES = [33, 160, 159, 133, 158, 157]
     RIGHT_EYE_INDICES = [362, 387, 386, 263, 385, 384]
@@ -58,21 +64,25 @@ def check_eye_status(landmarks, success, message,EAR_THRESHOLD) -> Tuple[bool, s
     EAR_THRESHOLD = EAR_THRESHOLD
 
     if not success or landmarks is None:
+        console.print(f"[bold red][EYE] ❌ Cannot process eye status:[/bold red] [red]{message}[/red]")
         return (False, message)
     
     try:
         # Calculate EAR for both eyes
+        console.print("[bold blue][EYE] 📊 Calculating EAR for both eyes...[/bold blue]")
         left_ear = calculate_ear(landmarks, LEFT_EYE_INDICES)
         right_ear = calculate_ear(landmarks, RIGHT_EYE_INDICES)
         
-        print(left_ear)
-        print(right_ear)
+        console.print(f"[bold yellow][EYE] 📈 EAR values:[/bold yellow] [cyan]left_ear={left_ear:.3f}, right_ear={right_ear:.3f}[/cyan] [white](threshold={EAR_THRESHOLD})[/white]")
 
         # Check if both eyes are open
         if left_ear > EAR_THRESHOLD and right_ear > EAR_THRESHOLD:
+            console.print("[bold green][EYE] ✅ Both eyes are open[/bold green]")
             return (True, "Both eyes are open")
         else:
+            console.print("[bold red][EYE] ❌ One or both eyes are closed[/bold red]")
             return (False, "One or both eyes are closed")
 
     except Exception as e:
+        console.print(f"[bold red][EYE] 💥 Error during eye status detection:[/bold red] [red]{str(e)}[/red]")
         return (False, f"Error during eye status detection: {str(e)}")

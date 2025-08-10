@@ -10,6 +10,8 @@ def is_chin_cut(landmarks, image_height, head_fully_th):
     return chin_y > image_height - head_fully_th
 
 def analyze_single_image(image_path, head_fully_th):
+    print(f"[FUNC] analyze_single_image: image={image_path}, head_fully_th={head_fully_th}")
+    
     mp_face_mesh = mp.solutions.face_mesh
 
     image = cv2.imread(image_path)

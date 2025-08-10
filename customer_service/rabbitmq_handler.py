@@ -1,8 +1,13 @@
 import pika
 import json
-from dotenv import load_dotenv
-load_dotenv()
 import os
+from dotenv import load_dotenv
+from rich.console import Console
+
+load_dotenv()
+
+# Initialize Rich Console
+console = Console()
 
 class QueueHandler:
     def __init__(self, model_handler):
@@ -19,20 +24,20 @@ class QueueHandler:
         if rabbitmq_url is None:
             raise ValueError("RABBITMQ_URL environment variable is not set")
         
-        print(f"Connecting to RabbitMQ using URL: {rabbitmq_url}")
+        console.print(f"[bold blue]Connecting to RabbitMQ using URL:[/bold blue] [cyan]{rabbitmq_url}[/cyan]")
         
         params = pika.URLParameters(rabbitmq_url)
         self.connection = pika.BlockingConnection(params)
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.queue)
         self.channel.basic_qos(prefetch_count=1)
-        print(f"Successfully connected to RabbitMQ and listening on queue: {self.queue}")
+        console.print(f"[bold green]Successfully connected to RabbitMQ and listening on queue:[/bold green] [yellow]{self.queue}[/yellow]")
 
     def on_request(self, ch, method, props, body):
         """Handle incoming RabbitMQ requests"""
         try:
             json_body = json.loads(body)
-            print(f"Received request: {json_body}")
+            console.print(f"[bold cyan]Received request:[/bold cyan] [white]{json_body}[/white]")
 
             if 'file' not in json_body and 'files' not in json_body:
                 response = json.dumps({
@@ -45,14 +50,14 @@ class QueueHandler:
                     'error': 'Batch processing not supported'
                 })
             else:
-                print(f"Processing file: {json_body['file']}")
+                console.print(f"[bold green]Processing file:[/bold green] [yellow]{json_body['file']}[/yellow]")
                 response = self.model_handler.process_image(
                     file_path=json_body['file']
                 )
-                print(f"Processing result: {response}")
+                console.print(f"[bold blue]Processing result:[/bold blue] [white]{response}[/white]")
 
         except Exception as e:
-            print(f"Error processing request: {str(e)}")
+            console.print(f"[bold red]Error processing request:[/bold red] [red]{str(e)}[/red]")
             response = json.dumps({
                 'OK': False,
                 'error': str(e)
@@ -72,11 +77,11 @@ class QueueHandler:
             queue=self.queue,
             on_message_callback=self.on_request
         )
-        print("Waiting for messages. To exit press CTRL+C")
+        console.print("[bold yellow]Waiting for messages. To exit press CTRL+C[/bold yellow]")
         self.channel.start_consuming()
 
     def close(self):
         """Close the connection"""
         if self.connection and not self.connection.is_closed:
             self.connection.close()
-            print("Connection closed") 
+            console.print("[bold green]Connection closed[/bold green]") 

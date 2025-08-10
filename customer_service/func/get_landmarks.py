@@ -1,6 +1,10 @@
 import mediapipe as mp
 import cv2
 import numpy as np
+from rich.console import Console
+
+# Initialize Rich Console
+console = Console()
 
 def get_lm(img_path):
     """
@@ -17,13 +21,16 @@ def get_lm(img_path):
 
     try:
         # Read the image
+        console.print(f"[bold cyan][LANDMARKS] 📸 Loading image:[/bold cyan] [white]{img_path}[/white]")
         image = cv2.imread(img_path)
         if image is None:
+            console.print("[bold red][LANDMARKS] ❌ Failed to load image[/bold red]")
             return (False, "Failed to load image", None, None, 0)
 
         # Convert to RGB as MediaPipe expects RGB images
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         height, width, _ = image.shape
+        console.print(f"[bold green][LANDMARKS] 📏 Image dimensions:[/bold green] [yellow]{width}x{height}[/yellow]")
 
         # Initialize face mesh model
         with mp_face_mesh.FaceMesh(
@@ -33,17 +40,21 @@ def get_lm(img_path):
             refine_landmarks=True
         ) as face_mesh:
             # Process the image
+            console.print("[bold blue][LANDMARKS] 🔍 Processing face mesh...[/bold blue]")
             results = face_mesh.process(image_rgb)
 
             # Check if faces are detected
             if not results.multi_face_landmarks:
+                console.print("[bold red][LANDMARKS] ❌ No faces detected[/bold red]")
                 return (False, "No faces detected", None, None)
 
+            console.print(f"[bold green][LANDMARKS] ✅ Detected {len(results.multi_face_landmarks)} face(s)[/bold green]")
             # Get the first detected face
             face_landmarks = results.multi_face_landmarks[0]
 
             # Extract landmarks
             landmarks = []
+            console.print(f"[bold blue][LANDMARKS] 📍 Extracting {len(face_landmarks.landmark)} landmarks...[/bold blue]")
             for landmark in face_landmarks.landmark:
                 # Convert relative coordinates to pixel coordinates
                 landmark_x = int(landmark.x * width)
@@ -58,6 +69,8 @@ def get_lm(img_path):
             y_min, y_max = min(y_coords), max(y_coords)
             w = x_max - x_min
             h = y_max - y_min
+            
+            console.print(f"[bold cyan][LANDMARKS] 📦 Initial bounding box:[/bold cyan] [yellow]({x_min}, {y_min}, {w}, {h})[/yellow]")
 
             # Add margin (10% of width/height) to ensure bbox covers the entire face
             margin_x = int(w * 0.1)
@@ -70,8 +83,12 @@ def get_lm(img_path):
             h = y_max - y_min
             bbox = (x_min, y_min, w, h) 
             norm_box = (x_min/width, y_min/height, w/width, h/height)
+            
+            console.print(f"[bold green][LANDMARKS] 📦 Final bounding box (with margin):[/bold green] [yellow]({x_min}, {y_min}, {w}, {h})[/yellow]")
+            console.print(f"[bold green][LANDMARKS] 📏 Normalized box:[/bold green] [cyan]{norm_box}[/cyan]")
 
             return (True, "Face detected successfully", landmarks, bbox, norm_box)
 
     except Exception as e:
+        console.print(f"[bold red][LANDMARKS] 💥 Error during face detection:[/bold red] [red]{str(e)}[/red]")
         return (False, f"Error during face detection: {str(e)}", None,None)

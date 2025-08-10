@@ -1,4 +1,4 @@
-madiepipe:
+mediapipe:
   static_image_mode: TRUE
   max_num_faces: 10
   min_detection_confidence: 0.6

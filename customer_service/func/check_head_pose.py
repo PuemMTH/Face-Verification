@@ -4,6 +4,8 @@ import numpy as np
 import os
 
 def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, til_right_th):
+    print(f"[FUNC] check_head_pose: image={image_path}, left_th={left_th}, right_th={right_th}, down_th={down_th}, up_th={up_th}, til_left_th={til_left_th}, til_right_th={til_right_th}")
+    
     # ตั้งค่า MediaPipe
     mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True)

@@ -9,6 +9,8 @@ def check_lightpol(
     diff_threshold,
     margin  # ตัดขอบหน้า 10%
 ) -> tuple[bool, str]:
+    print(f"[FUNC] check_lightpol: image={image_path}, dark_th={dark_threshold}, bright_th={bright_threshold}, diff_th={diff_threshold}, margin={margin}")
+    
     image = cv2.imread(image_path)
     if image is None:
         return False, "invalid_image"
