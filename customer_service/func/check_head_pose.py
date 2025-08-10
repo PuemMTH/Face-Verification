@@ -2,20 +2,24 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import os
+from rich.console import Console
+
+# Initialize Rich Console
+console = Console()
 
 def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, til_right_th):
-    print(f"[FUNC] check_head_pose: image={image_path}, left_th={left_th}, right_th={right_th}, down_th={down_th}, up_th={up_th}, til_left_th={til_left_th}, til_right_th={til_right_th}")
-    
     # ตั้งค่า MediaPipe
     mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True)
 
     # อ่านภาพจาก path
     if not os.path.exists(image_path):
+        console.print("[bold red]\t- POSE[/bold red] | Image path does not exist")
         return "Error: Image path does not exist"
     
     image = cv2.imread(image_path)
     if image is None:
+        console.print("[bold red]\t- POSE[/bold red] | Cannot read image")
         return "Error: Cannot read image"
 
     # เตรียมภาพ: แปลงเป็น RGB
@@ -59,6 +63,7 @@ def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, 
             # คำนวณการหมุนและการเคลื่อนที่
             success, rot_vec, tran_vec = cv2.solvePnP(face_3d, face_2d, cam_matrix, dist_matrix)
             if not success:
+                console.print("[bold red]\t- POSE[/bold red] | solvePnP failed")
                 return "Error: solvePnP failed"
 
             # แปลงเวกเตอร์การหมุนเป็นเมทริกซ์
@@ -70,27 +75,31 @@ def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, 
             yaw = angles[1] * 360
             roll = angles[2] * 360
 
-            
-
             # ตรวจสอบทิศทางศีรษะ
             if yaw < left_th:
                 success = False
                 direction = "Looking Left"
+                console.print(f"[bold red]\t- POSE[/bold red] | {direction} (yaw:{yaw:.1f} < {left_th})")
             elif yaw > right_th:
                 success = False
                 direction = "Looking Right"
+                console.print(f"[bold red]\t- POSE[/bold red] | {direction} (yaw:{yaw:.1f} > {right_th})")
             elif pitch < down_th:
                 success = False
                 direction = "Looking Down"
+                console.print(f"[bold red]\t- POSE[/bold red] | {direction} (pitch:{pitch:.1f} < {down_th})")
             elif pitch > up_th:
                 success = False
                 direction = "Looking Up"
+                console.print(f"[bold red]\t- POSE[/bold red] | {direction} (pitch:{pitch:.1f} > {up_th})")
             elif roll < til_left_th:
                 success = False
                 direction = "Tilting Left"
+                console.print(f"[bold red]\t- POSE[/bold red] | {direction} (roll:{roll:.1f} < {til_left_th})")
             elif roll > til_right_th:
                 success = False
                 direction = "Tilting Right"
+                console.print(f"[bold red]\t- POSE[/bold red] | {direction} (roll:{roll:.1f} > {til_right_th})")
             else:
                 success = True
                 direction = "Forward"
@@ -101,4 +110,5 @@ def check_head_pose(image_path, left_th, right_th, down_th, up_th, til_left_th, 
             return result
 
     face_mesh.close()
+    console.print("[bold red]\t- POSE[/bold red] | No face detected")
     return "Error: No face detected"

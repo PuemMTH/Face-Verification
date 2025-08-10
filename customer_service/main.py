@@ -37,31 +37,17 @@ class ModelHandler:
         """Load configuration from config.yml file"""
         config_path = os.path.join(os.path.dirname(__file__), "config.yml")
         try:
-            console.print(f"[bold blue][CONFIG][/bold blue] Loading config from: {config_path}")
+            console.print(f"[bold blue]CONFIG[/bold blue] | Loading from: [cyan]{os.path.basename(config_path)}[/cyan]")
             with open(config_path, "r") as file:
                 self.config = yaml.safe_load(file)
             
-            console.print("[bold green][CONFIG] ✅ Config loaded successfully![/bold green]")
-            console.print("[bold blue][CONFIG] 📋 Full config content:[/bold blue]")
-            console.print(f"[cyan][CONFIG]   {self.config}[/cyan]")
-            
-            # แสดงค่า MediaPipe config
-            if 'mediapipe' in self.config:
-                console.print("[bold yellow][CONFIG] 🎥 MediaPipe settings:[/bold yellow]")
-                for key, value in self.config['mediapipe'].items():
-                    console.print(f"[green][CONFIG]   - {key}: {value}[/green]")
-            
-            # แสดงค่า threshold config
-            if 'threshold' in self.config:
-                console.print("[bold yellow][CONFIG] 🎯 Threshold settings:[/bold yellow]")
-                for key, value in self.config['threshold'].items():
-                    console.print(f"[green][CONFIG]   - {key}: {value}[/green]")
+            console.print("[bold green]CONFIG[/bold green] | Loaded successfully")
             
         except FileNotFoundError:
-            console.print(f"[bold red][CONFIG] ❌ Config file not found at {config_path}[/bold red]")
+            console.print(f"[bold red]CONFIG[/bold red] | File not found: {config_path}")
             raise FileNotFoundError(f"Required config file not found: {config_path}")
         except Exception as e:
-            console.print(f"[bold red][CONFIG] ❌ Error loading config: {e}[/bold red]")
+            console.print(f"[bold red]CONFIG[/bold red] | Error: {e}")
             raise
 
     def load_model(self):
@@ -69,13 +55,11 @@ class ModelHandler:
         
         # Set MediaPipe GPU mode based on gpu_mode parameter
         if self.gpu_mode:
-            # Enable GPU acceleration for MediaPipe
             os.environ['MEDIAPIPE_GPU'] = '1'
-            console.print("[bold green]MediaPipe configured to use GPU acceleration[/bold green]")
+            console.print("[bold green]MODEL[/bold green] | GPU acceleration enabled")
         else:
-            # Force CPU mode for MediaPipe
             os.environ['MEDIAPIPE_GPU'] = '0'
-            console.print("[bold yellow]MediaPipe configured to use CPU only[/bold yellow]")
+            console.print("[bold yellow]MODEL[/bold yellow] | CPU mode only")
         
         self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
             static_image_mode=self.static_image_mode,
@@ -93,22 +77,7 @@ class ModelHandler:
         if not success:
             result["message"] = msg
         else:
-            console.print(f"[bold cyan][PROCESS] 🖼️  Processing image:[/bold cyan] [green]{os.path.basename(file_path)}[/green]")
-            console.print("[bold blue][PROCESS] 📊 Using threshold values from config:[/bold blue]")
-            console.print(f"[yellow][PROCESS]   - face_size: {self.config['threshold']['face_size']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - blur: {self.config['threshold']['blur']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - dark_threshold: {self.config['threshold']['dark_threshold']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - bright_threshold: {self.config['threshold']['bright_threshold']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - diff_threshold: {self.config['threshold']['diff_threshold']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - margin: {self.config['threshold']['margin']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - head_fully_th: {self.config['threshold']['head_fully_th']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - EAR_THRESHOLD: {self.config['threshold']['EAR_THRESHOLD']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - left_th: {self.config['threshold']['left_th']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - right_th: {self.config['threshold']['right_th']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - down_th: {self.config['threshold']['down_th']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - up_th: {self.config['threshold']['up_th']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - til_left_th: {self.config['threshold']['til_left_th']}[/yellow]")
-            console.print(f"[yellow][PROCESS]   - til_right_th: {self.config['threshold']['til_right_th']}[/yellow]")
+            console.print(f"[bold cyan]PROCESSING[/bold cyan] | {os.path.basename(file_path)}")
             
             funcs = [
                 ("check_face_min_size", check_face_min_size, [bbox, self.config['threshold']['face_size']], {}),
@@ -122,28 +91,13 @@ class ModelHandler:
             all_passed = True
 
             for name, func, args, kwargs in funcs:
-                if name == "check_face_min_size":
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]checking bbox={args[0]} with min_size={args[1]}[/cyan]")
-                elif name == "check_lightpol":
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]checking file={os.path.basename(args[0])} with dark_th={args[1]}, bright_th={args[2]}, diff_th={args[3]}, margin={args[4]}[/cyan]")
-                elif name == "check_face_blur":
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]checking file={os.path.basename(args[0])} with blur_threshold={args[1]}[/cyan]")
-                elif name == "check_head_fully":
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]checking file={os.path.basename(args[0])} with head_fully_th={args[1]}[/cyan]")
-                elif name == "check_head_pose":
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]checking file={os.path.basename(args[0])} with left_th={args[1]}, right_th={args[2]}, down_th={args[3]}, up_th={args[4]}, til_left_th={args[5]}, til_right_th={args[6]}[/cyan]")
-                elif name == "check_eye":
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]checking landmarks with EAR_THRESHOLD={args[3]}[/cyan]")
-                else:
-                    console.print(f"[bold magenta][PROCESS] 🔍 {name}:[/bold magenta] [cyan]args={args[1:] if len(args) > 1 else 'no params'}[/cyan]")
-                
                 try:
                     success, msg = func(*args, **kwargs)
-                    status_icon = '✅' if success else '❌'
+                    status_icon = 'PASS' if success else 'FAIL'
                     status_color = 'green' if success else 'red'
-                    console.print(f"[bold {status_color}][PROCESS] {status_icon} {name} result:[/bold {status_color}] [white]success={success}, message='{msg}'[/white]")
+                    console.print(f"\t[bold {status_color}]{status_icon}[/bold {status_color}] | {name} - {msg}")
                 except Exception as e:
-                    console.print(f"[bold red][PROCESS] 💥 {name} ERROR:[/bold red] [red]{str(e)}[/red]")
+                    console.print(f"\t[bold red]ERROR[/bold red] | {name} - Function error: {str(e)}")
                     success, msg = False, f"Function error: {str(e)}"
                 
                 if not success:
@@ -157,6 +111,9 @@ class ModelHandler:
                 image_save_path = os.path.join(output_crop_face_dir, image_filename)
                 result["align_face"] = image_save_path
                 result["bbox"] = bbox
+                console.print(f"[bold green]PROCESSING[/bold green] | All checks passed - Face aligned")
+            else:
+                console.print(f"[bold red]PROCESSING[/bold red] | Failed - {result['message']}")
         
         # Return JSON response
         if result["message"] is None:
@@ -173,12 +130,12 @@ class ModelHandler:
             })
 
 def signal_handler(signum, frame):
-    console.print("\n[bold yellow]Received shutdown signal. Closing connection...[/bold yellow]")
+    console.print("\n[bold yellow]SYSTEM[/bold yellow] | Shutdown signal received")
     try:
         if 'queue_handler' in globals():
             queue_handler.close()
     except Exception as e:
-        console.print(f"[bold red]Error closing connection: {e}[/bold red]")
+        console.print(f"[bold red]SYSTEM[/bold red] | Error closing: {e}")
     os._exit(0)
 
 if __name__ == "__main__":
@@ -192,14 +149,13 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    console.print("[bold blue]Starting model handler...[/bold blue]")
-    console.print(f"[bold green]GPU Mode: {gpu_mode}[/bold green]")
+    console.print("[bold blue]STARTUP[/bold blue] | Initializing Face Verification Service")
+    console.print(f"[bold green]STARTUP[/bold green] | GPU Mode: {gpu_mode}")
     model_handler = ModelHandler(gpu_mode=gpu_mode)
     global queue_handler
     queue_handler = QueueHandler(model_handler)
-    console.print("[bold blue]Connecting to RabbitMQ...[/bold blue]")
+    console.print("[bold blue]RABBITMQ[/bold blue] | Connecting...")
     queue_handler.connect()
     art.tprint("N. Face Verification")
-    console.print(f"[bold green]{time.strftime('%Y-%m-%d %H:%M:%S')} - Face Verification node started.[/bold green]")
-    console.print("[bold blue]Starting to consume messages...[/bold blue]")
+    console.print(f"[bold green]RABBITMQ[/bold green] | Service started at {time.strftime('%Y-%m-%d %H:%M:%S')}")
     queue_handler.start_consuming()

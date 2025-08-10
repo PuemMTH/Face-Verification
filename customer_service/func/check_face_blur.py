@@ -48,34 +48,29 @@ def check_face_blur(image, threshold):
     message : str
         ข้อความแจ้งผลลัพธ์
     """
-    console.print(f"[bold cyan][BLUR] 🔍 Checking blur:[/bold cyan] [white]image={image if isinstance(image, str) else 'numpy_array'}, threshold={threshold}[/white]")
     
     if threshold <= 0:
-        console.print("[bold red][BLUR] ❌ Threshold must be positive[/bold red]")
+        console.print("[bold red]\t- BLUR[/bold red] | Invalid threshold")
         return None, "Threshold must be positive"
 
     if isinstance(image, str):
-        console.print(f"[bold blue][BLUR] 📸 Loading image from file:[/bold blue] [yellow]{image}[/yellow]")
         img = cv2.imread(image)
         if img is None:
-            console.print("[bold red][BLUR] ❌ Cannot read image[/bold red]")
+            console.print("[bold red]\t- BLUR[/bold red] | Cannot read image")
             return None, "Cannot read image"
     else:
-        console.print("[bold blue][BLUR] 📸 Using provided numpy array[/bold blue]")
         img = image
 
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # ย้ายการสร้าง face_detection เข้าในฟังก์ชัน
-    console.print("[bold blue][BLUR] 🔍 Processing face detection...[/bold blue]")
     with mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5) as face_detection:
         results = face_detection.process(img_rgb)
 
         if not results.detections:
-            console.print("[bold red][BLUR] ❌ No face detected[/bold red]")
+            console.print("[bold red]\t- BLUR[/bold red] | No face detected")
             return None, "No face detected"
 
-        console.print("[bold green][BLUR] ✅ Face detected, analyzing blur...[/bold green]")
         detection = results.detections[0]
         bbox = detection.location_data.relative_bounding_box
         h, w, _ = img.shape
@@ -84,8 +79,6 @@ def check_face_blur(image, threshold):
         ymin = int(bbox.ymin * h)
         width = int(bbox.width * w)
         height = int(bbox.height * h)
-        
-        console.print(f"[bold cyan][BLUR] 📦 Face bounding box:[/bold cyan] [yellow]({xmin}, {ymin}, {width}, {height})[/yellow]")
 
         contour = np.array([
             [xmin, ymin],
@@ -96,14 +89,12 @@ def check_face_blur(image, threshold):
 
         face_img, _ = _patch_from_contour(img, contour)
         if face_img is None:
-            console.print("[bold red][BLUR] ❌ Invalid face region[/bold red]")
+            console.print("[bold red]\t- BLUR[/bold red] | Invalid face region")
             return None, "Invalid face region"
 
         variance = cv2.Laplacian(face_img, cv2.CV_64F).var()
-        console.print(f"[bold cyan][BLUR] 📊 Laplacian variance:[/bold cyan] [yellow]{variance:.2f}[/yellow] [white](threshold: {threshold})[/white]")
 
         if variance < threshold:
-            console.print(f"[bold red][BLUR] ❌ Image is blurry ({variance:.2f} < {threshold})[/bold red]")
+            console.print(f"[bold red]\t- BLUR[/bold red] | Blurry ({variance:.1f} < {threshold})")
             return False, "Image is blurry"
-        console.print(f"[bold green][BLUR] ✅ Image is not blurry ({variance:.2f} >= {threshold})[/bold green]")
         return True, "Image isn't blurry"

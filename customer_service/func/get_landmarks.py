@@ -21,16 +21,14 @@ def get_lm(img_path):
 
     try:
         # Read the image
-        console.print(f"[bold cyan][LANDMARKS] 📸 Loading image:[/bold cyan] [white]{img_path}[/white]")
         image = cv2.imread(img_path)
         if image is None:
-            console.print("[bold red][LANDMARKS] ❌ Failed to load image[/bold red]")
+            console.print("[bold red]\t- LANDMARKS[/bold red] | Failed to load image")
             return (False, "Failed to load image", None, None, 0)
 
         # Convert to RGB as MediaPipe expects RGB images
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         height, width, _ = image.shape
-        console.print(f"[bold green][LANDMARKS] 📏 Image dimensions:[/bold green] [yellow]{width}x{height}[/yellow]")
 
         # Initialize face mesh model
         with mp_face_mesh.FaceMesh(
@@ -40,15 +38,13 @@ def get_lm(img_path):
             refine_landmarks=True
         ) as face_mesh:
             # Process the image
-            console.print("[bold blue][LANDMARKS] 🔍 Processing face mesh...[/bold blue]")
             results = face_mesh.process(image_rgb)
 
             # Check if faces are detected
             if not results.multi_face_landmarks:
-                console.print("[bold red][LANDMARKS] ❌ No faces detected[/bold red]")
+                console.print("[bold red]\t- LANDMARKS[/bold red] | No faces detected")
                 return (False, "No faces detected", None, None)
 
-            console.print(f"[bold green][LANDMARKS] ✅ Detected {len(results.multi_face_landmarks)} face(s)[/bold green]")
             # Get the first detected face
             face_landmarks = results.multi_face_landmarks[0]
 
@@ -90,5 +86,5 @@ def get_lm(img_path):
             return (True, "Face detected successfully", landmarks, bbox, norm_box)
 
     except Exception as e:
-        console.print(f"[bold red][LANDMARKS] 💥 Error during face detection:[/bold red] [red]{str(e)}[/red]")
+        console.print(f"[bold red]\t- LANDMARKS[/bold red] | Error: {str(e)}")
         return (False, f"Error during face detection: {str(e)}", None,None)
