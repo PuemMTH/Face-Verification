@@ -41,6 +41,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backup/uploads:/app/uploads
+      - ./customer_service/config.yml:/app/config.yml
     environment:
       - RABBITMQ_URL=amqp://ipu_user:ipu_password@face_verification_rabbitmq-server:5672/
       - RABBITMQ_QUEUE=face_verification_queue
