@@ -70,6 +70,9 @@ class ModelHandler:
     def process_image(self, file_path: str):
         import json
 
+        # Reload config for each image processing
+        self.load_config()
+
         output_crop_face_dir = os.path.dirname(file_path)
         result = { "message": None, "align_face": None, "bbox": None }
         success, msg, landmarks, bbox, norm_box = get_lm(file_path)
