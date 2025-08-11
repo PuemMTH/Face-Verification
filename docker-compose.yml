@@ -41,10 +41,11 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backup/uploads:/app/uploads
-      - ./customer_service/config.yml:/app/config.yml
+      - ./customer_service:/app/customer_service:ro
     environment:
       - RABBITMQ_URL=amqp://ipu_user:ipu_password@face_verification_rabbitmq-server:5672/
       - RABBITMQ_QUEUE=face_verification_queue
+      - CONFIG_PATH=/app/customer_service/config.yml
     depends_on:
       rabbitmq:
         condition: service_healthy

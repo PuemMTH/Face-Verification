@@ -35,17 +35,38 @@ class ModelHandler:
     
     def load_config(self):
         """Load configuration from config.yml file"""
-        config_path = os.path.join(os.path.dirname(__file__), "config.yml")
+        # Resolve configuration path with env override and sensible fallbacks
+        env_config_path = os.environ.get("CONFIG_PATH")
+        candidate_paths = []
+        if env_config_path:
+            candidate_paths.append(env_config_path)
+
+        # Original location (same directory as this file inside the image)
+        candidate_paths.append(os.path.join(os.path.dirname(__file__), "config.yml"))
+
+        # Common alternative locations when mounting directories in containers
+        candidate_paths.append("/app/config.yml")
+        candidate_paths.append("/app/customer_service/config.yml")
+
+        # Pick the first existing path
+        config_path = None
+        for path in candidate_paths:
+            if os.path.isfile(path):
+                config_path = path
+                break
+
+        if not config_path:
+            searched = " | ".join(candidate_paths)
+            console.print(f"[bold red]CONFIG[/bold red] | File not found in any of: {searched}")
+            raise FileNotFoundError(f"Required config file not found in any of: {searched}")
+
         try:
-            console.print(f"[bold blue]CONFIG[/bold blue] | Loading from: [cyan]{os.path.basename(config_path)}[/cyan]")
+            console.print(f"[bold blue]CONFIG[/bold blue] | Loading from: [cyan]{config_path}[/cyan]")
             with open(config_path, "r") as file:
                 self.config = yaml.safe_load(file)
-            
+
             console.print("[bold green]CONFIG[/bold green] | Loaded successfully")
-            
-        except FileNotFoundError:
-            console.print(f"[bold red]CONFIG[/bold red] | File not found: {config_path}")
-            raise FileNotFoundError(f"Required config file not found: {config_path}")
+
         except Exception as e:
             console.print(f"[bold red]CONFIG[/bold red] | Error: {e}")
             raise
